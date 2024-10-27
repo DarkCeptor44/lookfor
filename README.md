@@ -7,6 +7,7 @@ A cross-platform command line utility to find and highlight files that match a p
 - From [crates.io](https://crates.io/crates/lookfor): `cargo install lookfor`
 - From [GitHub](https://github.com/DarkCeptor44/lookfor): `cargo install --git https://github.com/DarkCeptor44/lookfor`
 - Manually (after cloning the repo locally): `cargo install --path .`
+- From [releases](https://github.com/DarkCeptor44/lookfor/releases/latest).
 
 ## Usage
 
