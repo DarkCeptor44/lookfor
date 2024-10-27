@@ -1,0 +1,17 @@
+[package]
+name = "lookfor"
+description = "Cross-Platform file finder"
+version = "1.0.0"
+edition = "2021"
+homepage = "https://github.com/DarkCeptor44/lookfor"
+repository = "https://github.com/DarkCeptor44/lookfor"
+readme = "README.md"
+authors = ["DarkCeptor44"]
+license = "GPL-3.0-or-later"
+keywords = ["alternative", "find", "search", "pattern"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+colored = "2"
+walkdir = "2"
