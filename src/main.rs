@@ -32,7 +32,7 @@ struct App {
     #[arg(help = "Pattern to search for")]
     pattern: String,
 
-    #[arg(long, help = "Path to search in", default_value = ".")]
+    #[arg(long = "in", help = "Path to search in", default_value = ".")]
     path: String,
 
     #[arg(
