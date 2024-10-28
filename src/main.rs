@@ -70,10 +70,12 @@ fn main() {
         false => args.pattern.to_lowercase(),
     };
 
-    let entries = WalkDir::new(Path::new(args.path.as_str()))
+    let mut entries = WalkDir::new(Path::new(args.path.as_str()))
         .into_iter()
         .filter_map(|e| e.ok())
         .collect::<Vec<_>>();
+
+    entries.sort_by(|a, b| a.path().cmp(b.path()));
 
     for entry in entries {
         let path_str = entry.path().to_str().unwrap_or_else(|| {
