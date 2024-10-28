@@ -39,6 +39,7 @@ Options:
 The benchmarks were performed on different machines at the root of the repository after running both `cargo build` and `cargo build -r`, to find anything with `clap` in the target directory.
 
 - Machine A: `AMD64, 32GB RAM, Ryzen 7 3800X`
+- Machine B: `ARM64, 1GB RAM, Orange Pi Zero2`
 
 ### Windows
 
@@ -58,6 +59,13 @@ Ran on Machine A (WSL2 Debian 12):
 |:---|---:|---:|---:|---:|
 | `lookfor clap` | 167.4 ± 7.7 | 160.6 | 187.3 | 1.00 |
 | `find . -iname "*clap*"` | 271.9 ± 13.3 | 250.0 | 283.1 | 1.62 ± 0.11 |
+
+Ran on Machine B (Debian 12):
+
+| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
+|:---|---:|---:|---:|---:|
+| `lookfor clap` | 14.0 ± 0.2 | 13.5 | 14.6 | 1.06 ± 0.04 |
+| `find . -iname "*clap*"` | 13.2 ± 0.4 | 12.6 | 15.0 | 1.00 |
 
 ## License
 
