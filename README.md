@@ -23,7 +23,7 @@ Arguments:
   <PATTERN>  Pattern to search for
 
 Options:
-      --path <PATH>     Path to search in [default: .]
+      --in <PATH>       Path to search in [default: .]
       --color <COLOR>   Color of the highlighted text (off for no color) [default: blue]
   -I, --case-sensitive  Case sensitive search
   -h, --help            Print help
@@ -33,17 +33,31 @@ Options:
 ## Todo
 
 - Add support for regular expressions.
-- Benchmark on a Linux machine with more find-like commands.
 
 ## Benchmarks
 
-The benchmarks are performed on a Windows 10 machine with 32GB of RAM and a Ryzen 7 3800X at the root of the repository (to find anything with `clap` in the target directory).
+The benchmarks were performed on different machines at the root of the repository after running both `cargo build` and `cargo build -r`, to find anything with `clap` in the target directory.
+
+- Machine A: `AMD64, 32GB RAM, Ryzen 7 3800X`
+
+### Windows
+
+Ran on Machine A (Windows 10):
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `lookfor clap` | 43.0 ± 3.7 | 41.0 | 65.3 | 1.00 |
-| `dir /s /b *clap*` | 67.5 ± 3.2 | 64.0 | 78.0 | 1.57 ± 0.15 |
-| `findstr /s /m /c:clap *` | 600.9 ± 11.1 | 589.4 | 620.2 | 13.96 ± 1.23 |
+| `lookfor clap` | 44.8 ± 1.5 | 43.4 | 53.1 | 1.00 |
+| `dir /s /b *clap*` | 75.4 ± 1.7 | 73.2 | 79.7 | 1.68 ± 0.07 |
+| `findstr /s /m /c:clap *` | 694.5 ± 4.8 | 686.8 | 702.2 | 15.51 ± 0.52 |
+
+### Linux
+
+Ran on Machine A (WSL2 Debian 12):
+
+| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
+|:---|---:|---:|---:|---:|
+| `lookfor clap` | 167.4 ± 7.7 | 160.6 | 187.3 | 1.00 |
+| `find . -iname "*clap*"` | 271.9 ± 13.3 | 250.0 | 283.1 | 1.62 ± 0.11 |
 
 ## License
 
