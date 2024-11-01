@@ -71,6 +71,7 @@ fn main() {
     };
 
     let mut entries = WalkDir::new(Path::new(args.path.as_str()))
+        .follow_links(true)
         .into_iter()
         .filter_map(|e| e.ok())
         .collect::<Vec<_>>();

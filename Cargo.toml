@@ -1,7 +1,7 @@
 [package]
 name = "lookfor"
 description = "Cross-Platform file finder"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2021"
 homepage = "https://github.com/DarkCeptor44/lookfor"
 repository = "https://github.com/DarkCeptor44/lookfor"
