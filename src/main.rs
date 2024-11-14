@@ -17,11 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-extern crate clap;
-extern crate colored;
-extern crate walkdir;
-
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use colored::*;
 use std::{path::Path, process::exit};
 use walkdir::WalkDir;
@@ -37,10 +33,11 @@ struct App {
 
     #[arg(
         long,
-        help = "Color of the highlighted text (off for no color)",
-        default_value = "blue"
+        help = "Color of the highlighted text",
+        default_value_t,
+        value_enum
     )]
-    color: String,
+    color: Colors,
 
     #[arg(
         short = 'I',
@@ -49,6 +46,50 @@ struct App {
         default_value_t = false
     )]
     sensitive: bool,
+}
+
+#[derive(Clone, Default, ValueEnum)]
+enum Colors {
+    Red,
+    Black,
+    Green,
+    Yellow,
+    #[default]
+    Blue,
+    Magenta,
+    Cyan,
+    White,
+    BrightBlack,
+    BrightRed,
+    BrightGreen,
+    BrightYellow,
+    BrightBlue,
+    BrightMagenta,
+    BrightCyan,
+    BrightWhite,
+}
+
+impl From<Colors> for colored::Color {
+    fn from(value: Colors) -> Self {
+        match value {
+            Colors::Red => Color::Red,
+            Colors::Black => Color::Black,
+            Colors::Green => Color::Green,
+            Colors::Yellow => Color::Yellow,
+            Colors::Blue => Color::Blue,
+            Colors::Magenta => Color::Magenta,
+            Colors::Cyan => Color::Cyan,
+            Colors::White => Color::White,
+            Colors::BrightBlack => Color::BrightBlack,
+            Colors::BrightRed => Color::BrightRed,
+            Colors::BrightGreen => Color::BrightGreen,
+            Colors::BrightYellow => Color::BrightYellow,
+            Colors::BrightBlue => Color::BrightBlue,
+            Colors::BrightMagenta => Color::BrightMagenta,
+            Colors::BrightCyan => Color::BrightCyan,
+            Colors::BrightWhite => Color::BrightWhite,
+        }
+    }
 }
 
 fn main() {
