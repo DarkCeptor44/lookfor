@@ -47,9 +47,9 @@ Ran on Machine A (Windows 10):
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `lookfor clap` | 44.8 ± 1.5 | 43.4 | 53.1 | 1.00 |
-| `dir /s /b *clap*` | 75.4 ± 1.7 | 73.2 | 79.7 | 1.68 ± 0.07 |
-| `findstr /s /m /c:clap *` | 694.5 ± 4.8 | 686.8 | 702.2 | 15.51 ± 0.52 |
+| `lookfor clap` | 81.4 ± 1.0 | 80.2 | 84.8 | 1.00 |
+| `dir /s /b *clap*` | 98.8 ± 1.3 | 96.2 | 100.9 | 1.21 ± 0.02 |
+| `findstr /s /m /c:clap *` | 1096.1 ± 7.0 | 1090.4 | 1115.1 | 13.46 ± 0.19 |
 
 ### Linux
 
@@ -64,8 +64,8 @@ Ran on Machine B (Debian 12):
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `lookfor clap` | 14.0 ± 0.2 | 13.5 | 14.6 | 1.06 ± 0.04 |
-| `find . -iname "*clap*"` | 13.2 ± 0.4 | 12.6 | 15.0 | 1.00 |
+| `lookfor clap` | 24.1 ± 0.3 | 23.5 | 24.9 | 1.17 ± 0.03 |
+| `find . -iname "*clap*"` | 20.6 ± 0.4 | 19.9 | 22.0 | 1.00 |
 
 ## License
 
