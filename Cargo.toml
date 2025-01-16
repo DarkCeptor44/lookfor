@@ -13,7 +13,7 @@ categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-colored = "2"
+colored = "3"
 walkdir = "2"
 rayon = "1"
 
