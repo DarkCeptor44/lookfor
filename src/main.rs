@@ -94,16 +94,21 @@ impl From<Colors> for colored::Color {
 }
 
 fn main() {
+    if let Err(e) = run() {
+        eprintln!("{}", e.to_string().red().bold());
+        exit(1);
+    }
+}
+
+fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args = App::parse();
 
     if args.pattern.is_empty() {
-        println!("No pattern provided");
-        exit(1);
+        return Err("No pattern provided".into());
     }
 
     if args.path.is_empty() {
-        println!("No path provided");
-        exit(1);
+        return Err("No path provided".into());
     }
 
     let color = Color::from(args.color);
@@ -144,13 +149,15 @@ fn main() {
     for path in found {
         println!("{}", highlight_text(&path, &args.pattern, color));
     }
+
+    Ok(())
 }
 
 fn highlight_text(text: &str, to_highlight: &str, color: colored::Color) -> String {
     let index = text
         .to_lowercase()
         .find(&to_highlight.to_lowercase())
-        .unwrap();
+        .unwrap_or(0);
     format!(
         "{}{}{}",
         text[..index].normal(),
