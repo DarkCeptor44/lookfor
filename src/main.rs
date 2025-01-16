@@ -19,7 +19,8 @@
  */
 use clap::{Parser, ValueEnum};
 use colored::*;
-use std::{path::Path, process::exit};
+use rayon::prelude::*;
+use std::{collections::BTreeSet, path::Path, process::exit};
 use walkdir::WalkDir;
 
 #[derive(Parser)]
@@ -111,35 +112,37 @@ fn main() {
         false => args.pattern.to_lowercase(),
     };
 
-    let mut entries = WalkDir::new(Path::new(args.path.as_str()))
+    let found: BTreeSet<String> = WalkDir::new(Path::new(&args.path))
         .follow_links(true)
         .into_iter()
-        .filter_map(|e| e.ok())
-        .collect::<Vec<_>>();
+        .collect::<Vec<_>>()
+        .par_iter()
+        .fold(BTreeSet::new, |mut acc, e| {
+            let e = e.as_ref().unwrap();
+            let path_str = e.path().to_string_lossy().to_string();
 
-    entries.sort_by(|a, b| a.path().cmp(b.path()));
+            if path_str.is_empty() {
+                return acc;
+            }
 
-    for entry in entries {
-        let path_str = entry.path().to_str().unwrap_or_else(|| {
-            eprintln!(
-                "Error converting path to string: {}",
-                entry.path().display()
-            );
-            ""
+            let path = match args.sensitive {
+                true => path_str.to_owned(),
+                false => path_str.to_lowercase(),
+            };
+
+            if path.contains(&pattern) {
+                acc.insert(path_str);
+            }
+
+            acc
+        })
+        .reduce(BTreeSet::new, |mut a, b| {
+            a.extend(b);
+            a
         });
 
-        if path_str.is_empty() {
-            continue;
-        }
-
-        let path = match args.sensitive {
-            true => path_str.to_owned(),
-            false => path_str.to_lowercase(),
-        };
-
-        if path.contains(&pattern) {
-            println!("{}", highlight_text(path_str, &args.pattern, color));
-        }
+    for path in found {
+        println!("{}", highlight_text(&path, &args.pattern, color));
     }
 }
 
