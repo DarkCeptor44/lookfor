@@ -24,7 +24,7 @@ Arguments:
 
 Options:
       --in <PATH>       Path to search in [default: .]
-      --color <COLOR>   Color of the highlighted text (off for no color) [default: blue]
+      --color <COLOR>   Color of the highlighted text [default: blue] [possible values: red, black, green, yellow, blue, magenta, cyan, white, bright-black, bright-red, bright-green, bright-yellow, bright-blue, bright-magenta, bright-cyan, bright-white]
   -I, --case-sensitive  Case sensitive search
   -h, --help            Print help
   -V, --version         Print version
@@ -36,36 +36,26 @@ Options:
 
 ## Benchmarks
 
-The benchmarks were performed on different machines at the root of the repository after running both `cargo build` and `cargo build -r`, to find anything with `clap` in the target directory.
+The benchmarks were performed on different machines at the root of the repository after running both `cargo build` and `cargo build -r`, to find anything with `clap` in the target directory. Using [Hyperfine](https://github.com/sharkdp/hyperfine).
 
-- Machine A: `AMD64, 32GB RAM, Ryzen 7 3800X`
-- Machine B: `ARM64, 1GB RAM, Orange Pi Zero2`
+### Machine A
 
-### Windows
-
-Ran on Machine A (Windows 10):
+- AMD64, 32GB RAM, Ryzen 7 3800X, Windows 10.
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `lookfor clap` | 81.4 ± 1.0 | 80.2 | 84.8 | 1.00 |
-| `dir /s /b *clap*` | 98.8 ± 1.3 | 96.2 | 100.9 | 1.21 ± 0.02 |
-| `findstr /s /m /c:clap *` | 1096.1 ± 7.0 | 1090.4 | 1115.1 | 13.46 ± 0.19 |
+| `dir /s /b *clap*` | 74.9 ± 1.8 | 72.2 | 81.8 | 1.23 ± 0.04 |
+| `findstr /s /m /c:clap *` | 805.9 ± 10.1 | 798.8 | 825.9 | 13.22 ± 0.31 |
+| `lookfor clap` | 61.0 ± 1.2 | 59.6 | 64.9 | 1.00 |
 
-### Linux
+### Machine B
 
-Ran on Machine A (WSL2 Debian 12):
-
-| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
-|:---|---:|---:|---:|---:|
-| `lookfor clap` | 167.4 ± 7.7 | 160.6 | 187.3 | 1.00 |
-| `find . -iname "*clap*"` | 271.9 ± 13.3 | 250.0 | 283.1 | 1.62 ± 0.11 |
-
-Ran on Machine B (Debian 12):
+- ARM64, 1GB RAM, Orange Pi Zero2, Debian 12.
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `lookfor clap` | 24.1 ± 0.3 | 23.5 | 24.9 | 1.17 ± 0.03 |
-| `find . -iname "*clap*"` | 20.6 ± 0.4 | 19.9 | 22.0 | 1.00 |
+| `find . -iname "*clap*"` | 29.5 ± 4.4 | 27.8 | 54.6 | 1.20 ± 0.18 |
+| `lookfor clap` | 24.6 ± 0.6 | 23.4 | 27.8 | 1.00 |
 
 ## License
 
