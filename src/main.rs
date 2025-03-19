@@ -34,7 +34,7 @@ struct App {
 
     #[arg(
         long,
-        help = "Color of the highlighted text",
+        help = "Color of the highlighted text (off for no color)",
         default_value_t,
         value_enum
     )]
@@ -95,7 +95,7 @@ impl From<Colors> for colored::Color {
 
 fn main() {
     if let Err(e) = App::run() {
-        eprintln!("lookfor: {}", e.red());
+        eprintln!("{}", format!("{} {e}", "lookfor:".bold()).red());
         exit(1);
     }
 }
