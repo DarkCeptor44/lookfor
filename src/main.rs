@@ -163,7 +163,10 @@ fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::process::{Command, Stdio};
+    use std::{
+        path::PathBuf,
+        process::{Command, Stdio},
+    };
 
     const BIN_PATH: &str = "target/debug/lookfor";
 
@@ -175,7 +178,13 @@ mod tests {
         assert!(output.status.success());
 
         let stdout = String::from_utf8(output.stdout)?;
-        assert!(stdout.contains(".\\target\\debug\\deps\\clap_lex-1195a16252b95268.d"));
+        let mut expected = PathBuf::new();
+        expected.push("target");
+        expected.push("debug");
+        expected.push("deps");
+        expected.push("clap_lex-");
+
+        assert!(stdout.contains(&expected.display().to_string()));
 
         Ok(())
     }
@@ -188,7 +197,12 @@ mod tests {
         assert!(output.status.success());
 
         let stdout = String::from_utf8(output.stdout)?;
-        assert!(!dbg!(stdout).contains(".\\target\\debug\\deps\\clap_lex-1195a16252b95268.d"));
+        let mut expected = PathBuf::new();
+        expected.push("target");
+        expected.push("debug");
+        expected.push("deps");
+        expected.push("clap_lex-");
+        assert!(!stdout.contains(&expected.display().to_string()));
 
         Ok(())
     }
