@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+#![warn(clippy::pedantic)]
 
 /**
  * lookfor: find alternative
@@ -18,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 use clap::{Parser, ValueEnum};
-use colored::*;
+use colored::{Color, Colorize};
 use rayon::prelude::*;
 use std::{path::Path, process::exit};
 use walkdir::WalkDir;
