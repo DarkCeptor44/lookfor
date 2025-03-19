@@ -159,3 +159,49 @@ fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
         text[index + to_highlight.len()..].normal()
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use std::process::{Command, Stdio};
+
+    const BIN_PATH: &str = "target/debug/lookfor";
+
+    #[test]
+    fn test_pattern() -> Result<(), Box<dyn std::error::Error>> {
+        let mut cmd = Command::new(BIN_PATH);
+        cmd.arg("clap");
+        let output = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).output()?;
+        assert!(output.status.success());
+
+        let stdout = String::from_utf8(output.stdout)?;
+        assert!(stdout.contains(".\\target\\debug\\deps\\clap_lex-1195a16252b95268.d"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_pattern_not_found() -> Result<(), Box<dyn std::error::Error>> {
+        let mut cmd = Command::new(BIN_PATH);
+        cmd.arg("Clap").arg("-I");
+        let output = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).output()?;
+        assert!(output.status.success());
+
+        let stdout = String::from_utf8(output.stdout)?;
+        assert!(!dbg!(stdout).contains(".\\target\\debug\\deps\\clap_lex-1195a16252b95268.d"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_empty_pattern() -> Result<(), Box<dyn std::error::Error>> {
+        let mut cmd = Command::new(BIN_PATH);
+        cmd.arg("");
+        let output = cmd.stderr(Stdio::piped()).output()?;
+
+        assert!(!output.status.success());
+        let stderr = String::from_utf8(output.stderr)?;
+        assert!(stderr.contains("lookfor: No pattern provided"));
+
+        Ok(())
+    }
+}
