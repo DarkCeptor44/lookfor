@@ -20,7 +20,7 @@
 use clap::{Parser, ValueEnum};
 use colored::*;
 use rayon::prelude::*;
-use std::{collections::BTreeSet, path::Path, process::exit};
+use std::{path::Path, process::exit};
 use walkdir::WalkDir;
 
 #[derive(Parser)]
@@ -94,66 +94,59 @@ impl From<Colors> for colored::Color {
 }
 
 fn main() {
-    if let Err(e) = run() {
-        eprintln!("{}", e.to_string().red().bold());
+    if let Err(e) = App::run() {
+        eprintln!("lookfor: {}", e.red());
         exit(1);
     }
 }
 
-fn run() -> Result<(), Box<dyn std::error::Error>> {
-    let args = App::parse();
+impl App {
+    fn run() -> Result<(), String> {
+        let args = App::parse();
 
-    if args.pattern.is_empty() {
-        return Err("No pattern provided".into());
+        if args.pattern.trim().is_empty() {
+            return Err("No pattern provided".into());
+        }
+
+        if args.path.trim().is_empty() {
+            return Err("No path provided".into());
+        }
+
+        let color = Color::from(args.color);
+        let pattern = if args.sensitive {
+            args.pattern
+        } else {
+            args.pattern.to_lowercase()
+        };
+
+        WalkDir::new(Path::new(&args.path))
+            .follow_links(true)
+            .into_iter()
+            .par_bridge()
+            .filter_map(std::result::Result::ok)
+            .for_each(|entry| {
+                let path_str = entry.path().display().to_string();
+
+                if path_str.is_empty() {
+                    return;
+                }
+
+                let path = if args.sensitive {
+                    path_str.clone()
+                } else {
+                    path_str.to_lowercase()
+                };
+
+                if path.contains(&pattern) {
+                    println!("{}", highlight_text(&path, &pattern, color));
+                }
+            });
+
+        Ok(())
     }
-
-    if args.path.is_empty() {
-        return Err("No path provided".into());
-    }
-
-    let color = Color::from(args.color);
-    let pattern = match args.sensitive {
-        true => args.pattern.to_owned(),
-        false => args.pattern.to_lowercase(),
-    };
-
-    let found: BTreeSet<String> = WalkDir::new(Path::new(&args.path))
-        .follow_links(true)
-        .into_iter()
-        .collect::<Vec<_>>()
-        .par_iter()
-        .fold(BTreeSet::new, |mut acc, e| {
-            let e = e.as_ref().unwrap();
-            let path_str = e.path().to_string_lossy().to_string();
-
-            if path_str.is_empty() {
-                return acc;
-            }
-
-            let path = match args.sensitive {
-                true => path_str.to_owned(),
-                false => path_str.to_lowercase(),
-            };
-
-            if path.contains(&pattern) {
-                acc.insert(path_str);
-            }
-
-            acc
-        })
-        .reduce(BTreeSet::new, |mut a, b| {
-            a.extend(b);
-            a
-        });
-
-    for path in found {
-        println!("{}", highlight_text(&path, &args.pattern, color));
-    }
-
-    Ok(())
 }
 
-fn highlight_text(text: &str, to_highlight: &str, color: colored::Color) -> String {
+fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
     let index = text
         .to_lowercase()
         .find(&to_highlight.to_lowercase())
