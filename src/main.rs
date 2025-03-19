@@ -34,6 +34,7 @@ struct App {
     path: String,
 
     #[arg(
+        short,
         long,
         help = "Color of the highlighted text (off for no color)",
         default_value_t,
