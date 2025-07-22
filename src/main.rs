@@ -23,7 +23,10 @@ use anyhow::{Result, anyhow};
 use clap::{Parser, ValueEnum};
 use colored::{Color, Colorize};
 use rayon::prelude::*;
-use std::{path::Path, process::exit};
+use std::{
+    path::{Path, PathBuf},
+    process::exit,
+};
 use walkdir::WalkDir;
 
 #[derive(Parser)]
@@ -33,7 +36,7 @@ struct App {
     pattern: String,
 
     #[arg(long = "in", help = "Path to search in", default_value = ".")]
-    path: String,
+    path: PathBuf,
 
     #[arg(
         short,
