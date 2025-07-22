@@ -20,14 +20,11 @@
  */
 
 use anyhow::{Result, anyhow};
+use async_walkdir::WalkDir;
 use clap::{Parser, ValueEnum};
 use colored::{Color, Colorize};
-use rayon::prelude::*;
-use std::{
-    path::{Path, PathBuf},
-    process::exit,
-};
-use walkdir::WalkDir;
+use futures::StreamExt;
+use std::{path::PathBuf, process::exit};
 
 #[derive(Parser)]
 #[command(author,version,about,long_about=None)]
@@ -122,28 +119,31 @@ async fn run() -> Result<()> {
         return Err(anyhow!("Path is not a directory: {}", path.display()));
     }
 
-    WalkDir::new(Path::new(path))
-        .follow_links(true)
-        .into_iter()
-        .par_bridge()
-        .filter_map(std::result::Result::ok)
-        .for_each(|entry| {
-            let path_str = entry.path().display().to_string();
+    let pattern_to_check = if args.sensitive {
+        pattern.to_string()
+    } else {
+        pattern.to_lowercase()
+    };
+    let mut entries = WalkDir::new(path);
 
-            if path_str.is_empty() {
-                return;
-            }
+    while let Some(entry) = entries.next().await {
+        let Ok(entry) = entry else { continue };
+        let path_str = entry.path().display().to_string();
 
-            let path = if args.sensitive {
-                path_str.clone()
-            } else {
-                path_str.to_lowercase()
-            };
+        if path_str.is_empty() {
+            continue;
+        }
 
-            if path.contains(pattern) {
-                println!("{}", highlight_text(&path, pattern, color));
-            }
-        });
+        let path_to_check = if args.sensitive {
+            path_str.clone()
+        } else {
+            path_str.to_lowercase()
+        };
+
+        if path_to_check.contains(&pattern_to_check) {
+            println!("{}", highlight_text(&path_str, pattern, color));
+        }
+    }
 
     Ok(())
 }
