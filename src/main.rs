@@ -171,52 +171,56 @@ mod tests {
     const BIN_PATH: &str = "target/debug/lookfor";
 
     #[test]
-    fn test_pattern() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_pattern() {
         let mut cmd = Command::new(BIN_PATH);
         cmd.arg("clap");
-        let output = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).output()?;
+        let output = cmd
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .expect("Failed to run command");
         assert!(output.status.success());
 
-        let stdout = String::from_utf8(output.stdout)?;
-        let mut expected = PathBuf::new();
-        expected.push("target");
-        expected.push("debug");
-        expected.push("deps");
-        expected.push("clap_lex-");
+        let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+        let expected = PathBuf::from("target")
+            .join("debug")
+            .join("deps")
+            .join("clap_lex-");
 
         assert!(stdout.contains(&expected.display().to_string()));
-
-        Ok(())
     }
 
     #[test]
-    fn test_pattern_not_found() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_pattern_not_found() {
         let mut cmd = Command::new(BIN_PATH);
         cmd.arg("Clap").arg("-I");
-        let output = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).output()?;
+        let output = cmd
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .expect("Failed to run command");
         assert!(output.status.success());
 
-        let stdout = String::from_utf8(output.stdout)?;
-        let mut expected = PathBuf::new();
-        expected.push("target");
-        expected.push("debug");
-        expected.push("deps");
-        expected.push("clap_lex-");
+        let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+        let expected = PathBuf::from("target")
+            .join("debug")
+            .join("deps")
+            .join("clap_lex-");
         assert!(!stdout.contains(&expected.display().to_string()));
-
-        Ok(())
     }
 
     #[test]
-    fn test_empty_pattern() -> Result<(), Box<dyn std::error::Error>> {
+    #[should_panic(expected = "lookfor: No pattern provided")]
+    fn test_empty_pattern() {
         let mut cmd = Command::new(BIN_PATH);
         cmd.arg("");
-        let output = cmd.stderr(Stdio::piped()).output()?;
+        let output = cmd
+            .stderr(Stdio::piped())
+            .output()
+            .expect("Failed to run command");
 
         assert!(!output.status.success());
-        let stderr = String::from_utf8(output.stderr)?;
+        let stderr = String::from_utf8(output.stderr).expect("Invalid UTF-8");
         assert!(stderr.contains("lookfor: No pattern provided"));
-
-        Ok(())
     }
 }
