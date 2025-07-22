@@ -100,14 +100,15 @@ impl From<Colors> for colored::Color {
     }
 }
 
-fn main() {
-    if let Err(e) = run() {
+#[tokio::main]
+async fn main() {
+    if let Err(e) = run().await {
         eprintln!("{}", format!("lookfor: {e:?}").red());
         exit(1);
     }
 }
 
-fn run() -> Result<()> {
+async fn run() -> Result<()> {
     let args = App::parse();
     let path = args.path.as_path();
     let pattern = args.pattern.trim();
