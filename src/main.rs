@@ -18,6 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+use anyhow::{Result, anyhow};
 use clap::{Parser, ValueEnum};
 use colored::{Color, Colorize};
 use rayon::prelude::*;
@@ -96,56 +98,50 @@ impl From<Colors> for colored::Color {
 }
 
 fn main() {
-    if let Err(e) = App::run() {
-        eprintln!("{}", format!("{} {e}", "lookfor:".bold()).red());
+    if let Err(e) = run() {
+        eprintln!("{}", format!("lookfor: {e:?}").red());
         exit(1);
     }
 }
 
-impl App {
-    fn run() -> Result<(), String> {
-        let args = App::parse();
+fn run() -> Result<()> {
+    let args = App::parse();
+    let path = args.path.as_path();
+    let pattern = args.pattern.trim();
+    let color = Color::from(args.color);
 
-        if args.pattern.trim().is_empty() {
-            return Err("No pattern provided".into());
-        }
-
-        if args.path.trim().is_empty() {
-            return Err("No path provided".into());
-        }
-
-        let color = Color::from(args.color);
-        let pattern = if args.sensitive {
-            args.pattern
-        } else {
-            args.pattern.to_lowercase()
-        };
-
-        WalkDir::new(Path::new(&args.path))
-            .follow_links(true)
-            .into_iter()
-            .par_bridge()
-            .filter_map(std::result::Result::ok)
-            .for_each(|entry| {
-                let path_str = entry.path().display().to_string();
-
-                if path_str.is_empty() {
-                    return;
-                }
-
-                let path = if args.sensitive {
-                    path_str.clone()
-                } else {
-                    path_str.to_lowercase()
-                };
-
-                if path.contains(&pattern) {
-                    println!("{}", highlight_text(&path, &pattern, color));
-                }
-            });
-
-        Ok(())
+    if pattern.is_empty() {
+        return Err(anyhow!("No pattern provided"));
     }
+
+    if !path.is_dir() {
+        return Err(anyhow!("Path is not a directory: {}", path.display()));
+    }
+
+    WalkDir::new(Path::new(path))
+        .follow_links(true)
+        .into_iter()
+        .par_bridge()
+        .filter_map(std::result::Result::ok)
+        .for_each(|entry| {
+            let path_str = entry.path().display().to_string();
+
+            if path_str.is_empty() {
+                return;
+            }
+
+            let path = if args.sensitive {
+                path_str.clone()
+            } else {
+                path_str.to_lowercase()
+            };
+
+            if path.contains(pattern) {
+                println!("{}", highlight_text(&path, pattern, color));
+            }
+        });
+
+    Ok(())
 }
 
 fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
