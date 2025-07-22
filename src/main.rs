@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(clippy::pedantic)]
 
-/**
+/*
  * lookfor: find alternative
  * Copyright (C) 2024 DarkCeptor44
  *
