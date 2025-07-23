@@ -1,15 +1,13 @@
 # lookfor
 
-[![madewith](https://forthebadge.com/images/badges/made-with-rust.svg)](https://forthebadge.com)
-
-A cross-platform CLI tool to find and highlight files that match a pattern.
+A cross-platform CLI tool to find and highlight files or folders that match a pattern.
 
 ## Features
 
 - Cross-platform
-- Concurrent searching
+- Asynchronous
 - Case-sensitive and insensitive search (insensitive by default)
-- Customizable colored output for errors and highlighting (can be disabled by setting a `NO_COLOR` environment variable to any value)
+- Customizable colored output for highlighting (can be disabled by setting a `NO_COLOR` environment variable to any value)
 
 ## Installation
 
@@ -76,6 +74,8 @@ $ lookfor clap
 ## Todo
 
 - [ ] Add support for regular expressions.
+- [ ] Add highlighting for every matching part of a line.
+- [ ] Write better tests.
 
 ## Tests
 
@@ -94,9 +94,9 @@ The benchmarks were performed using [Hyperfine](https://github.com/sharkdp/hyper
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `dir /s /b *clap*` | 39.4 ± 1.1 | 37.7 | 45.0 | 1.06 ± 0.05 |
-| `findstr /s /m /c:clap *` | 327.0 ± 1.9 | 325.6 | 331.6 | 8.78 ± 0.31 |
-| `target\release\lookfor.exe clap` | 37.3 ± 1.3 | 35.6 | 42.0 | 1.00 |
+| `dir /s /b *clap*` | 150.9 ± 3.3 | 146.3 | 158.4 | 1.40 ± 0.19 |
+| `findstr /s /m /c:clap *` | 1794.8 ± 23.9 | 1770.9 | 1854.9 | 16.63 ± 2.18 |
+| `target\release\lookfor.exe clap` | 107.9 ± 14.1 | 92.1 | 142.3 | 1.00 |
 
 ### Linux
 
@@ -104,8 +104,8 @@ The benchmarks were performed using [Hyperfine](https://github.com/sharkdp/hyper
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `target/release/lookfor clap` | 37.5 ± 0.8 | 36.4 | 41.6 | 1.02 ± 0.03 |
-| `find . -iname "*clap*"` | 37.0 ± 0.5 | 35.9 | 38.2 | 1.00 |
+| `find . -iname "*clap*"` | 20.5 ± 0.3 | 19.7 | 21.5 | 1.00 |
+| `target/release/lookfor clap` | 73.3 ± 1.3 | 70.6 | 76.5 | 3.57 ± 0.09 |
 
 ## License
 
