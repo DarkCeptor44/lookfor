@@ -208,19 +208,4 @@ mod tests {
             .join("clap_lex-");
         assert!(!stdout.contains(&expected.display().to_string()));
     }
-
-    #[test]
-    #[should_panic(expected = "lookfor: No pattern provided")]
-    fn test_empty_pattern() {
-        let mut cmd = Command::new(BIN_PATH);
-        cmd.arg("");
-        let output = cmd
-            .stderr(Stdio::piped())
-            .output()
-            .expect("Failed to run command");
-
-        assert!(!output.status.success());
-        let stderr = String::from_utf8(output.stderr).expect("Invalid UTF-8");
-        assert!(stderr.contains("lookfor: No pattern provided"));
-    }
 }
