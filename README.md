@@ -88,15 +88,22 @@ cargo test
 
 The benchmarks were performed using [Hyperfine](https://github.com/sharkdp/hyperfine) at the root of the repository after running both `cargo build` and `cargo build -r`, to find anything with `clap` in the `target` directory.
 
+### TLDR
+
+The new results are different even for `dir`, `findstr` and `find` but essentially:
+
+- On Windows the async version is **24% faster** than `dir`, where sync version was **19%**, and **1176% faster** than `findstr`, where sync version was **~900%**
+- On Linux the async version is **9% slower** than `find`, where sync version was **2% faster**, this probably comes from the overhead of `tokio` and I don't think it's worth fixing
+
 ### Windows
 
 - AMD64, 32GB RAM, Ryzen 7 3800X, Windows 10.
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `dir /s /b *clap*` | 150.9 ± 3.3 | 146.3 | 158.4 | 1.40 ± 0.19 |
-| `findstr /s /m /c:clap *` | 1794.8 ± 23.9 | 1770.9 | 1854.9 | 16.63 ± 2.18 |
-| `target\release\lookfor.exe clap` | 107.9 ± 14.1 | 92.1 | 142.3 | 1.00 |
+| `dir /s /b *clap*` | 56.9 ± 2.0 | 54.3 | 66.9 | 1.24 ± 0.18 |
+| `findstr /s /m /c:clap *` | 538.1 ± 18.3 | 525.7 | 577.7 | 11.76 ± 1.69 |
+| `target\release\lookfor.exe clap` | 45.8 ± 6.4 | 39.2 | 72.1 | 1.00 |
 
 ### Linux
 
