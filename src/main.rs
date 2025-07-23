@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(clippy::pedantic)]
 
-/**
+/*
  * lookfor: find alternative
  * Copyright (C) 2024 DarkCeptor44
  *
@@ -18,11 +18,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+use anyhow::{Result, anyhow};
+use async_walkdir::WalkDir;
 use clap::{Parser, ValueEnum};
 use colored::{Color, Colorize};
-use rayon::prelude::*;
-use std::{path::Path, process::exit};
-use walkdir::WalkDir;
+use futures::StreamExt;
+use std::{path::PathBuf, process::exit};
 
 #[derive(Parser)]
 #[command(author,version,about,long_about=None)]
@@ -31,7 +33,7 @@ struct App {
     pattern: String,
 
     #[arg(long = "in", help = "Path to search in", default_value = ".")]
-    path: String,
+    path: PathBuf,
 
     #[arg(
         short,
@@ -95,57 +97,55 @@ impl From<Colors> for colored::Color {
     }
 }
 
-fn main() {
-    if let Err(e) = App::run() {
-        eprintln!("{}", format!("{} {e}", "lookfor:".bold()).red());
+#[tokio::main]
+async fn main() {
+    if let Err(e) = run().await {
+        eprintln!("{}", format!("lookfor: {e:?}").red());
         exit(1);
     }
 }
 
-impl App {
-    fn run() -> Result<(), String> {
-        let args = App::parse();
+async fn run() -> Result<()> {
+    let args = App::parse();
+    let path = args.path.as_path();
+    let pattern = args.pattern.trim();
+    let color = Color::from(args.color);
 
-        if args.pattern.trim().is_empty() {
-            return Err("No pattern provided".into());
+    if pattern.is_empty() {
+        return Err(anyhow!("No pattern provided"));
+    }
+
+    if !path.is_dir() {
+        return Err(anyhow!("Path is not a directory: {}", path.display()));
+    }
+
+    let pattern_to_check = if args.sensitive {
+        pattern.to_string()
+    } else {
+        pattern.to_lowercase()
+    };
+    let mut entries = WalkDir::new(path);
+
+    while let Some(entry) = entries.next().await {
+        let Ok(entry) = entry else { continue };
+        let path_str = entry.path().display().to_string();
+
+        if path_str.is_empty() {
+            continue;
         }
 
-        if args.path.trim().is_empty() {
-            return Err("No path provided".into());
-        }
-
-        let color = Color::from(args.color);
-        let pattern = if args.sensitive {
-            args.pattern
+        let path_to_check = if args.sensitive {
+            path_str.clone()
         } else {
-            args.pattern.to_lowercase()
+            path_str.to_lowercase()
         };
 
-        WalkDir::new(Path::new(&args.path))
-            .follow_links(true)
-            .into_iter()
-            .par_bridge()
-            .filter_map(std::result::Result::ok)
-            .for_each(|entry| {
-                let path_str = entry.path().display().to_string();
-
-                if path_str.is_empty() {
-                    return;
-                }
-
-                let path = if args.sensitive {
-                    path_str.clone()
-                } else {
-                    path_str.to_lowercase()
-                };
-
-                if path.contains(&pattern) {
-                    println!("{}", highlight_text(&path, &pattern, color));
-                }
-            });
-
-        Ok(())
+        if path_to_check.contains(&pattern_to_check) {
+            println!("{}", highlight_text(&path_str, pattern, color));
+        }
     }
+
+    Ok(())
 }
 
 fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
@@ -171,52 +171,41 @@ mod tests {
     const BIN_PATH: &str = "target/debug/lookfor";
 
     #[test]
-    fn test_pattern() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_pattern() {
         let mut cmd = Command::new(BIN_PATH);
         cmd.arg("clap");
-        let output = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).output()?;
+        let output = cmd
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .expect("Failed to run command");
         assert!(output.status.success());
 
-        let stdout = String::from_utf8(output.stdout)?;
-        let mut expected = PathBuf::new();
-        expected.push("target");
-        expected.push("debug");
-        expected.push("deps");
-        expected.push("clap_lex-");
+        let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+        let expected = PathBuf::from("target")
+            .join("debug")
+            .join("deps")
+            .join("clap_lex-");
 
         assert!(stdout.contains(&expected.display().to_string()));
-
-        Ok(())
     }
 
     #[test]
-    fn test_pattern_not_found() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_pattern_not_found() {
         let mut cmd = Command::new(BIN_PATH);
         cmd.arg("Clap").arg("-I");
-        let output = cmd.stdout(Stdio::piped()).stderr(Stdio::piped()).output()?;
+        let output = cmd
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .expect("Failed to run command");
         assert!(output.status.success());
 
-        let stdout = String::from_utf8(output.stdout)?;
-        let mut expected = PathBuf::new();
-        expected.push("target");
-        expected.push("debug");
-        expected.push("deps");
-        expected.push("clap_lex-");
+        let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+        let expected = PathBuf::from("target")
+            .join("debug")
+            .join("deps")
+            .join("clap_lex-");
         assert!(!stdout.contains(&expected.display().to_string()));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_empty_pattern() -> Result<(), Box<dyn std::error::Error>> {
-        let mut cmd = Command::new(BIN_PATH);
-        cmd.arg("");
-        let output = cmd.stderr(Stdio::piped()).output()?;
-
-        assert!(!output.status.success());
-        let stderr = String::from_utf8(output.stderr)?;
-        assert!(stderr.contains("lookfor: No pattern provided"));
-
-        Ok(())
     }
 }

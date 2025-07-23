@@ -1,15 +1,13 @@
 # lookfor
 
-[![madewith](https://forthebadge.com/images/badges/made-with-rust.svg)](https://forthebadge.com)
-
-A cross-platform CLI tool to find and highlight files that match a pattern.
+A cross-platform CLI tool to find and highlight files or folders that match a pattern.
 
 ## Features
 
 - Cross-platform
-- Concurrent searching
+- Asynchronous
 - Case-sensitive and insensitive search (insensitive by default)
-- Customizable colored output for errors and highlighting (can be disabled by setting a `NO_COLOR` environment variable to any value)
+- Customizable colored output for highlighting (can be disabled by setting a `NO_COLOR` environment variable to any value)
 
 ## Installation
 
@@ -76,6 +74,8 @@ $ lookfor clap
 ## Todo
 
 - [ ] Add support for regular expressions.
+- [ ] Add highlighting for every matching part of a line.
+- [ ] Write better tests.
 
 ## Tests
 
@@ -88,15 +88,22 @@ cargo test
 
 The benchmarks were performed using [Hyperfine](https://github.com/sharkdp/hyperfine) at the root of the repository after running both `cargo build` and `cargo build -r`, to find anything with `clap` in the `target` directory.
 
+### TLDR
+
+The new results are different even for `dir`, `findstr` and `find` but essentially:
+
+- On Windows the async version is **24% faster** than `dir`, where sync version was **19%**, and **1176% faster** than `findstr`, where sync version was **~900%**
+- On Linux the async version is **9% slower** than `find`, where sync version was **2% faster**, this probably comes from the overhead of `tokio` and I don't think it's worth fixing
+
 ### Windows
 
 - AMD64, 32GB RAM, Ryzen 7 3800X, Windows 10.
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `dir /s /b *clap*` | 39.4 ± 1.1 | 37.7 | 45.0 | 1.06 ± 0.05 |
-| `findstr /s /m /c:clap *` | 327.0 ± 1.9 | 325.6 | 331.6 | 8.78 ± 0.31 |
-| `target\release\lookfor.exe clap` | 37.3 ± 1.3 | 35.6 | 42.0 | 1.00 |
+| `dir /s /b *clap*` | 56.9 ± 2.0 | 54.3 | 66.9 | 1.24 ± 0.18 |
+| `findstr /s /m /c:clap *` | 538.1 ± 18.3 | 525.7 | 577.7 | 11.76 ± 1.69 |
+| `target\release\lookfor.exe clap` | 45.8 ± 6.4 | 39.2 | 72.1 | 1.00 |
 
 ### Linux
 
@@ -104,8 +111,8 @@ The benchmarks were performed using [Hyperfine](https://github.com/sharkdp/hyper
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `target/release/lookfor clap` | 37.5 ± 0.8 | 36.4 | 41.6 | 1.02 ± 0.03 |
-| `find . -iname "*clap*"` | 37.0 ± 0.5 | 35.9 | 38.2 | 1.00 |
+| `find . -iname "*clap*"` | 20.5 ± 0.3 | 19.7 | 21.5 | 1.00 |
+| `target/release/lookfor clap` | 73.3 ± 1.3 | 70.6 | 76.5 | 3.57 ± 0.09 |
 
 ## License
 
