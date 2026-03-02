@@ -13,9 +13,9 @@ keywords = ["alternative", "find", "search", "pattern"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-anyhow = "^1"
-async-walkdir = "^2"
-clap = { version = "^4.5", features = ["derive"] }
-colored = "^3"
-futures = "^0.3"
-tokio = { version = "^1", features = ["macros", "rt-multi-thread"] }
+anyhow = "1.0.102"
+async-walkdir = "2.1.0"
+clap = { version = "4.5.60", features = ["derive"] }
+colored = "3.1.1"
+futures = "0.3.32"
+tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread"] }
