@@ -19,9 +19,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+mod types;
+
+use crate::types::Colors;
 use anyhow::{Result, anyhow};
 use async_walkdir::WalkDir;
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use colored::{Color, Colorize};
 use futures::StreamExt;
 use std::{path::PathBuf, process::exit};
@@ -51,50 +54,6 @@ struct App {
         default_value_t = false
     )]
     sensitive: bool,
-}
-
-#[derive(Clone, Default, ValueEnum)]
-enum Colors {
-    Red,
-    Black,
-    Green,
-    Yellow,
-    #[default]
-    Blue,
-    Magenta,
-    Cyan,
-    White,
-    BrightBlack,
-    BrightRed,
-    BrightGreen,
-    BrightYellow,
-    BrightBlue,
-    BrightMagenta,
-    BrightCyan,
-    BrightWhite,
-}
-
-impl From<Colors> for colored::Color {
-    fn from(value: Colors) -> Self {
-        match value {
-            Colors::Red => Color::Red,
-            Colors::Black => Color::Black,
-            Colors::Green => Color::Green,
-            Colors::Yellow => Color::Yellow,
-            Colors::Blue => Color::Blue,
-            Colors::Magenta => Color::Magenta,
-            Colors::Cyan => Color::Cyan,
-            Colors::White => Color::White,
-            Colors::BrightBlack => Color::BrightBlack,
-            Colors::BrightRed => Color::BrightRed,
-            Colors::BrightGreen => Color::BrightGreen,
-            Colors::BrightYellow => Color::BrightYellow,
-            Colors::BrightBlue => Color::BrightBlue,
-            Colors::BrightMagenta => Color::BrightMagenta,
-            Colors::BrightCyan => Color::BrightCyan,
-            Colors::BrightWhite => Color::BrightWhite,
-        }
-    }
 }
 
 #[tokio::main]
