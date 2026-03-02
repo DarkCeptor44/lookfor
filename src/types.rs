@@ -1,6 +1,7 @@
 use clap::ValueEnum;
 use colored::Color;
 
+/// Wrapper for [`colored::Color`] that works on `clap` with a default
 #[derive(Debug, Clone, Copy, Default, ValueEnum)]
 pub enum Colors {
     Red,
