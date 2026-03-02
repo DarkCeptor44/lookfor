@@ -2,6 +2,7 @@
 #![warn(clippy::pedantic, missing_debug_implementations)]
 
 use colored::{Color, Colorize};
+use crossbeam::channel::Sender;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{path::Path, sync::Arc};
 
@@ -26,17 +27,17 @@ impl SearchCtx {
     }
 
     #[must_use]
-    pub fn sensitive(mut self, sensitive: bool) -> Self {
-        self.sensitive = sensitive;
-        self
-    }
-
-    #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
         C: Into<Option<Color>>,
     {
         self.color = color.into();
+        self
+    }
+
+    #[must_use]
+    pub fn sensitive(mut self, sensitive: bool) -> Self {
+        self.sensitive = sensitive;
         self
     }
 }
@@ -54,7 +55,7 @@ fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
     )
 }
 
-pub fn search_dir(path: &Path, ctx: &Arc<SearchCtx>, tx: &crossbeam::channel::Sender<String>) {
+pub fn search_dir(path: &Path, ctx: &Arc<SearchCtx>, tx: &Sender<String>) {
     let Ok(read_dir) = std::fs::read_dir(path) else {
         return;
     };
