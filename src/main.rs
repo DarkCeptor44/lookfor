@@ -19,9 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod types;
-
-use crate::types::Colors;
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use colored::{Color, Colorize};
@@ -41,11 +38,10 @@ struct App {
     #[arg(
         short,
         long,
-        help = "Color of the highlighted text (set NO_COLOR environment variable to any value to disable)",
-        default_value_t,
-        value_enum
+        help = "Color of the highlighted text (off or set NO_COLOR env var to disable)",
+        default_value = "blue"
     )]
-    color: Colors,
+    color: Color,
 
     #[arg(
         short = 'I',
@@ -73,14 +69,14 @@ fn main_impl() -> Result<()> {
     let ctx = Arc::new(
         SearchCtx::new(args.pattern)
             .sensitive(args.sensitive)
-            .color(Into::<Color>::into(args.color)),
+            .color(args.color),
     );
 
     let (tx, rx) = unbounded();
     search_dir(&args.path, &ctx, &tx);
 
-    while let Ok(found_path) = rx.try_recv() {
-        println!("{found_path}");
+    while let Ok(path) = rx.try_recv() {
+        println!("{path}");
     }
 
     Ok(())

@@ -51,7 +51,12 @@ impl SearchCtx {
     where
         C: Into<Option<Color>>,
     {
-        self.color = color.into();
+        let color = color.into();
+        self.color = if color.is_some_and(|c| c == Color::White) {
+            None
+        } else {
+            color
+        };
         self
     }
 
