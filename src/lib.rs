@@ -19,6 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+pub use colored;
 pub use crossbeam;
 
 use colored::{Color, Colorize};
