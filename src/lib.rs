@@ -19,6 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+pub use crossbeam;
+
 use colored::{Color, Colorize};
 use crossbeam::channel::Sender;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
