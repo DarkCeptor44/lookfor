@@ -156,7 +156,7 @@ mod tests {
 
         assert_eq!(
             highlight_text(text, to_highlight, Color::Blue),
-            "hello \u{1b}[1;34mworld\u{1b}[0m"
+            "hello \u{1b}[34mworld\u{1b}[0m"
         );
     }
 }
