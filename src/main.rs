@@ -47,7 +47,7 @@ struct App {
         short = 'I',
         long = "case-sensitive",
         help = "Case sensitive search",
-        default_value_t = false
+        default_value_t
     )]
     sensitive: bool,
 }
@@ -63,7 +63,7 @@ fn main_impl() -> Result<()> {
     let args = App::parse();
 
     if args.pattern.is_empty() {
-        return Err(anyhow!("Pattern cannot be empty"));
+        return Err(anyhow!("pattern cannot be empty"));
     }
 
     let ctx = Arc::new(

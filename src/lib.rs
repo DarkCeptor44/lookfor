@@ -26,11 +26,11 @@ use crossbeam::channel::Sender;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{path::Path, sync::Arc};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SearchCtx {
+    color: Option<Color>,
     pattern: String,
     sensitive: bool,
-    color: Option<Color>,
 }
 
 impl SearchCtx {
@@ -57,6 +57,15 @@ impl SearchCtx {
         } else {
             color
         };
+        self
+    }
+
+    #[must_use]
+    pub fn pattern<S>(mut self, pattern: S) -> Self
+    where
+        S: Into<String>,
+    {
+        self.pattern = pattern.into();
         self
     }
 
