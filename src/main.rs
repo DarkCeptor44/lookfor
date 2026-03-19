@@ -19,11 +19,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 use clap::Parser;
 use colored::{Color, Colorize};
 use crossbeam::channel::unbounded;
 use lookfor::{SearchCtx, search_dir};
+use rayon::ThreadPoolBuilder;
 use std::{path::PathBuf, process::exit, sync::Arc};
 
 #[derive(Parser)]
@@ -50,6 +51,9 @@ struct App {
         default_value_t
     )]
     sensitive: bool,
+
+    #[arg(short, long, help = "Number of threads to use (0 for auto)", default_value_t = get_threads())]
+    threads: usize,
 }
 
 fn main() {
@@ -61,9 +65,15 @@ fn main() {
 
 fn main_impl() -> Result<()> {
     let args = App::parse();
-
     if args.pattern.is_empty() {
         return Err(anyhow!("pattern cannot be empty"));
+    }
+
+    if args.threads > 0 {
+        ThreadPoolBuilder::new()
+            .num_threads(args.threads)
+            .build_global()
+            .context("failed to set number of threads")?;
     }
 
     let ctx = Arc::new(
@@ -80,4 +90,17 @@ fn main_impl() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss
+)]
+fn get_threads() -> usize {
+    let cpus = num_cpus::get();
+    match cpus {
+        0 => 1,
+        _ => (cpus as f32 * 0.75).round() as usize,
+    }
 }
