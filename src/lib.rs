@@ -23,8 +23,26 @@ pub use crossbeam;
 
 use colored::{Color, Colorize};
 use crossbeam::channel::Sender;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use std::{path::Path, sync::Arc};
+use rayon::iter::{ParallelBridge, ParallelIterator};
+use std::{borrow::Cow, path::Path, sync::Arc};
+
+pub trait FastLowercase {
+    fn to_lowercase_fast(&self) -> Cow<'_, str>;
+}
+
+impl<T> FastLowercase for T
+where
+    T: AsRef<str>,
+{
+    fn to_lowercase_fast(&self) -> Cow<'_, str> {
+        let s = self.as_ref();
+        if s.chars().all(|c| !c.is_uppercase()) {
+            Cow::Borrowed(s)
+        } else {
+            Cow::Owned(s.to_lowercase())
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct SearchCtx {
@@ -78,13 +96,13 @@ impl SearchCtx {
 
 fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
     let index = text
-        .to_lowercase()
-        .find(&to_highlight.to_lowercase())
+        .to_lowercase_fast()
+        .find(&*to_highlight.to_lowercase_fast())
         .unwrap_or(0);
     format!(
         "{}{}{}",
         text[..index].normal(),
-        text[index..index + to_highlight.len()].color(color).bold(),
+        text[index..index + to_highlight.len()].color(color),
         text[index + to_highlight.len()..].normal()
     )
 }
@@ -94,32 +112,35 @@ pub fn search_dir(path: &Path, ctx: &Arc<SearchCtx>, tx: &Sender<String>) {
         return;
     };
 
-    let entries: Vec<_> = read_dir.filter_map(Result::ok).collect();
-
-    entries.into_par_iter().for_each(|entry| {
-        let entry_path = entry.path();
-        let path_str = entry_path.to_string_lossy();
-
-        let is_match = if ctx.sensitive {
-            path_str.contains(&ctx.pattern)
-        } else {
-            path_str
-                .as_bytes()
-                .windows(ctx.pattern.len())
-                .any(|window| window.eq_ignore_ascii_case(ctx.pattern.as_bytes()))
+    read_dir.par_bridge().flatten().for_each(|entry| {
+        let Ok(ft) = entry.file_type() else {
+            return;
         };
 
-        if is_match {
-            let result = if let Some(color) = ctx.color {
-                highlight_text(&path_str, &ctx.pattern, color)
-            } else {
-                path_str.to_string()
-            };
-            let _ = tx.send(result);
+        let entry_path = entry.path();
+        if ft.is_dir() {
+            search_dir(&entry_path, ctx, tx);
         }
 
-        if entry_path.is_dir() {
-            search_dir(&entry_path, ctx, tx);
+        if let Some(fname) = entry.file_name().to_str() {
+            let is_match = if ctx.sensitive {
+                fname.contains(&ctx.pattern)
+            } else {
+                fname
+                    .as_bytes()
+                    .windows(ctx.pattern.len())
+                    .any(|w| w.eq_ignore_ascii_case(ctx.pattern.as_bytes()))
+            };
+
+            if is_match {
+                let path_str = entry_path.to_string_lossy();
+                let result = if let Some(color) = ctx.color {
+                    highlight_text(&path_str, &ctx.pattern, color)
+                } else {
+                    path_str.into_owned()
+                };
+                let _ = tx.send(result);
+            }
         }
     });
 }

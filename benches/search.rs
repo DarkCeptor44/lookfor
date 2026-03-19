@@ -44,16 +44,16 @@ fn bench_search_1000_files(b: Bencher) {
     let needle_path = temp_path.join("dir_0").join("target_file.match");
     write(&needle_path, b"data").unwrap();
 
+    let (tx, rx) = unbounded();
+    let ctx = Arc::new(SearchCtx::new(PATTERN).sensitive(true));
+
     b.counter(ItemsCount::new(total_items)).bench(|| {
-        let (tx, rx) = unbounded();
-        let ctx = Arc::new(SearchCtx::new(PATTERN).sensitive(true));
-
         search_dir(&temp_path, &ctx, &tx);
-
-        while let Ok(res) = rx.try_recv() {
-            black_box(res);
-        }
     });
+
+    while let Ok(res) = rx.try_recv() {
+        black_box(res);
+    }
 }
 
 #[divan::bench(name = "search_dir (1000 files, insensitive)")]
@@ -66,14 +66,14 @@ fn bench_search_1000_files_insensitive(b: Bencher) {
     let needle_path = temp_path.join("dir_0").join("target_file.match");
     write(&needle_path, b"data").unwrap();
 
+    let (tx, rx) = unbounded();
+    let ctx = Arc::new(SearchCtx::new(PATTERN));
+
     b.counter(ItemsCount::new(total_items)).bench(|| {
-        let (tx, rx) = unbounded();
-        let ctx = Arc::new(SearchCtx::new(PATTERN));
-
         search_dir(&temp_path, &ctx, &tx);
-
-        while let Ok(res) = rx.try_recv() {
-            black_box(res);
-        }
     });
+
+    while let Ok(res) = rx.try_recv() {
+        black_box(res);
+    }
 }
