@@ -1,6 +1,6 @@
 /*
  * lookfor: find alternative
- * Copyright (C) 2024 DarkCeptor44
+ * Copyright (C) 2026+ DarkCeptor44
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
