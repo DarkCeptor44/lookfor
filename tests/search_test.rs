@@ -19,10 +19,22 @@
 use crate::common::setup_test_dirs;
 use anyhow::Result;
 use crossbeam::channel::unbounded;
-use lookfor::{SearchCtx, search_dir};
-use std::{fs::write, sync::Arc};
+use lookfor::{FastLowercase, SearchCtx, search_dir};
+use std::{borrow::Cow, fs::write, sync::Arc};
 
 mod common;
+
+#[test]
+fn test_fast_lowercase() {
+    assert_eq!(
+        "Hello World".to_lowercase_fast(),
+        Cow::<String>::Owned("hello world".to_string())
+    );
+    assert_eq!(
+        "hello world".to_lowercase_fast(),
+        Cow::Borrowed("hello world")
+    );
+}
 
 #[test]
 fn test_search_dir_sensitive() -> Result<()> {
