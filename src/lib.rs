@@ -27,7 +27,25 @@ use crossbeam::channel::Sender;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 use std::{borrow::Cow, path::Path, sync::Arc};
 
+/// Trait for fast lowercase conversion
 pub trait FastLowercase {
+    /// Converts a string to lowercase if at least one character is uppercase, otherwise just borrows it
+    ///
+    /// ## Returns
+    ///
+    /// A [Cow] (Copy-on-Write) string containing either the borrowed or the owned string
+    ///
+    /// ## Examples
+    ///
+    /// ```rust,no_run
+    /// use lookfor::FastLowercase;
+    ///
+    /// let s1 = "Hello World";
+    /// let s1_lower = s1.to_lowercase_fast(); // converts to lowercase which allocates a new String
+    ///
+    /// let s2 = "hello world";
+    /// let s2_lower = s2.to_lowercase_fast(); // borrows s2 since its already lowercase
+    /// ```
     fn to_lowercase_fast(&self) -> Cow<'_, str>;
 }
 
@@ -45,6 +63,21 @@ where
     }
 }
 
+/// Search context. Holds the pattern to search for, whether or not it should be case-sensitive, and the color to use for highlighting.
+///
+/// Must be wrapped in an [Arc] (Atomic Reference Counted) to be shared between threads
+///
+/// ## Examples
+///
+/// ```rust,no_run
+/// use colored::Color;
+/// use lookfor::SearchCtx;
+/// use std::sync::Arc;
+///
+/// let ctx = Arc::new(SearchCtx::new("gurep")
+///     .sensitive(false)
+///     .color(Color::Red));
+/// ```
 #[derive(Debug, Clone)]
 pub struct SearchCtx {
     color: Option<Color>,
@@ -53,6 +86,15 @@ pub struct SearchCtx {
 }
 
 impl SearchCtx {
+    /// Creates a new [`SearchCtx`]
+    ///
+    /// ## Arguments
+    ///
+    /// * `pattern` - The pattern to search for
+    ///
+    /// ## Returns
+    ///
+    /// A new [`SearchCtx`]
     #[must_use]
     pub fn new<S>(pattern: S) -> Self
     where
@@ -65,6 +107,15 @@ impl SearchCtx {
         }
     }
 
+    /// Sets the color to use for highlighting
+    ///
+    /// ## Arguments
+    ///
+    /// * `color` - The color to use (white is considered no color)
+    ///
+    /// ## Returns
+    ///
+    /// A new [`SearchCtx`]
     #[must_use]
     pub fn color<C>(mut self, color: C) -> Self
     where
@@ -79,6 +130,17 @@ impl SearchCtx {
         self
     }
 
+    /// Sets the pattern to search for
+    ///
+    /// You should use [`SearchCtx::new`] instead if you don't need to set the pattern dynamically
+    ///
+    /// ## Arguments
+    ///
+    /// * `pattern` - The pattern to search for
+    ///
+    /// ## Returns
+    ///
+    /// A new [`SearchCtx`]
     #[must_use]
     pub fn pattern<S>(mut self, pattern: S) -> Self
     where
@@ -88,6 +150,15 @@ impl SearchCtx {
         self
     }
 
+    /// Sets whether or not the search should be case-sensitive
+    ///
+    /// ## Arguments
+    ///
+    /// * `sensitive` - Whether or not the search should be case-sensitive
+    ///
+    /// ## Returns
+    ///
+    /// A new [`SearchCtx`]
     #[must_use]
     pub fn sensitive(mut self, sensitive: bool) -> Self {
         self.sensitive = sensitive;
@@ -95,6 +166,7 @@ impl SearchCtx {
     }
 }
 
+/// Highlights a text with a given color
 fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
     let index = text
         .to_lowercase_fast()
@@ -108,6 +180,35 @@ fn highlight_text(text: &str, to_highlight: &str, color: Color) -> String {
     )
 }
 
+/// Search a directory recursively for a pattern. Matches on both files and directories
+///
+/// ## Arguments
+///
+/// * `path` - The path to search
+/// * `ctx` - The search context
+/// * `tx` - The channel to send the results to
+///
+/// ## Examples
+///
+/// ```rust,no_run
+/// use lookfor::{
+///     crossbeam::channel::unbounded,
+///     colored::Color,
+///     SearchCtx,
+///     search_dir,
+/// };
+/// use std::{path::Path, sync::Arc};
+///
+/// let ctx = Arc::new(SearchCtx::new("gurep").color(Color::Red));
+/// let (tx, rx) = unbounded();
+///
+/// let path = Path::new("path/to/search");
+/// search_dir(&path, &ctx, &tx);
+///
+/// while let Ok(path) = rx.try_recv() {
+///     println!("{}", path);
+/// }
+/// ```
 pub fn search_dir(path: &Path, ctx: &Arc<SearchCtx>, tx: &Sender<String>) {
     let Ok(read_dir) = std::fs::read_dir(path) else {
         return;
