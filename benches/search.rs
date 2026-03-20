@@ -77,3 +77,25 @@ fn bench_search_1000_files_insensitive(b: Bencher) {
         black_box(res);
     }
 }
+
+#[divan::bench(name = "search_dir (1000 files, glob)")]
+fn bench_search_1000_files_glob(b: Bencher) {
+    let (width, depth, files) = (10, 5, 20);
+    let temp_dir = setup_test_dirs(width, depth, files);
+    let total_items = width * depth * files;
+    let temp_path = temp_dir.path().to_path_buf();
+
+    let needle_path = temp_path.join("dir_0").join("target_file.match");
+    write(&needle_path, b"data").unwrap();
+
+    let (tx, rx) = unbounded();
+    let ctx = Arc::new(SearchCtx::new("*.match").unwrap());
+
+    b.counter(ItemsCount::new(total_items)).bench(|| {
+        search_dir(&temp_path, &ctx, &tx);
+    });
+
+    while let Ok(res) = rx.try_recv() {
+        black_box(res);
+    }
+}

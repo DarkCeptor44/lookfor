@@ -1,5 +1,7 @@
 # lookfor
 
+![usage](usage.png)
+
 A cross-platform CLI tool to find and highlight files or folders that match a pattern.
 
 ## Features

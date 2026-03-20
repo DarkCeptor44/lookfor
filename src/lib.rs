@@ -325,7 +325,7 @@ pub fn search_dir(path: &Path, ctx: &Arc<SearchCtx>, tx: &Sender<String>) {
                     if ctx.is_glob {
                         highlight_text(&path_str, fname, color)
                     } else {
-                    highlight_text(&path_str, &ctx.pattern, color)
+                        highlight_text(&path_str, &ctx.pattern, color)
                     }
                 } else {
                     path_str.into_owned()
