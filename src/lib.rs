@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(clippy::pedantic, missing_debug_implementations, missing_docs)]
 
-//! # lookfor: find alternative
+//! # lookfor
 //!
 //! A cross-platform CLI tool to find and highlight files or folders that match a pattern.
 //!
