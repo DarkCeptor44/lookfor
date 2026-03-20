@@ -16,8 +16,8 @@ A cross-platform CLI tool to find and highlight files or folders that match a pa
 
 | Version | Edition | MSRV |
 | ------- | ------- | ---- |
-| 1.3.y-3.x.y | 2024 | 1.85 |
-| 1.0.y-1.2.y | 2021 | N/A |
+| `1.3.y`-`3.x.y` | 2024 | 1.85 |
+| `1.0.y`-`1.2.y` | 2021 | N/A |
 
 ## Installation
 
