@@ -45,7 +45,7 @@ fn bench_search_1000_files(b: Bencher) {
     write(&needle_path, b"data").unwrap();
 
     let (tx, rx) = unbounded();
-    let ctx = Arc::new(SearchCtx::new(PATTERN).sensitive(true));
+    let ctx = Arc::new(SearchCtx::builder(PATTERN).sensitive(true).build().unwrap());
 
     b.counter(ItemsCount::new(total_items)).bench(|| {
         search_dir(&temp_path, &ctx, &tx);
@@ -67,7 +67,7 @@ fn bench_search_1000_files_insensitive(b: Bencher) {
     write(&needle_path, b"data").unwrap();
 
     let (tx, rx) = unbounded();
-    let ctx = Arc::new(SearchCtx::new(PATTERN));
+    let ctx = Arc::new(SearchCtx::new(PATTERN).unwrap());
 
     b.counter(ItemsCount::new(total_items)).bench(|| {
         search_dir(&temp_path, &ctx, &tx);

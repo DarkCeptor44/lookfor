@@ -77,9 +77,11 @@ fn main_impl() -> Result<()> {
     }
 
     let ctx = Arc::new(
-        SearchCtx::new(args.pattern)
+        SearchCtx::builder(args.pattern)
             .sensitive(args.sensitive)
-            .color(args.color),
+            .color(args.color)
+            .build()
+            .context("failed to build SearchCtxBuilder")?,
     );
 
     let (tx, rx) = unbounded();
