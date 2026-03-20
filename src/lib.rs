@@ -1,5 +1,117 @@
 #![forbid(unsafe_code)]
-#![warn(clippy::pedantic, missing_debug_implementations)]
+#![warn(clippy::pedantic, missing_debug_implementations, missing_docs)]
+
+//! # lookfor: find alternative
+//!
+//! A cross-platform CLI tool to find and highlight files or folders that match a pattern.
+//!
+//! ## Features
+//!
+//! - Cross-platform
+//! - Case-sensitive and insensitive search (insensitive by default)
+//! - Customizable colored output for highlighting (can be disabled by setting a `NO_COLOR` environment variable to any value but its off by default)
+//! - Glob pattern matching, e.g. `*.txt`
+//! - Multithreaded search
+//!
+//! ## MSRV
+//!
+//! | Version | Edition | MSRV |
+//! | ------- | ------- | ---- |
+//! | 1.3.y-3.x.y | 2024 | 1.85 |
+//! | 1.0.y-1.2.y | 2021 | N/A |
+//!
+//! ## Installation
+//!
+//! ```bash
+//! cargo add lookfor
+//! ```
+//!
+//! Or you can add it to your `Cargo.toml` file:
+//!
+//! ```toml
+//! [dependencies]
+//! lookfor = "3.0.0"
+//! ```
+//!
+//! ## Usage
+//!
+//! ```rust,no_run
+//! use lookfor::{SearchCtx, colored::Color, crossbeam::channel::unbounded, search_dir};
+//! use std::{path::Path, sync::Arc};
+//!
+//! // create a search context wrapped in Arc
+//! let ctx = Arc::new(
+//!     SearchCtx::builder("*.txt")
+//!         .color(Color::Blue) // set the color to use for highlighting or leave it off
+//!         .sensitive(true) // search is case-insensitive by default, you can use this method to make it case-sensitive
+//!         .build()
+//!         .unwrap(),
+//! );
+//!
+//! // create the channel to send the results to
+//! let (tx, rx) = unbounded();
+//!
+//! // search the directory
+//! search_dir(Path::new("path/to/search"), &ctx, &tx);
+//!
+//! // print the results
+//! while let Ok(res) = rx.try_recv() {
+//!     println!("{}", res);
+//! }
+//! ```
+//!
+//! ## Benchmarks
+//!
+//! ```text
+//! Timer precision: 100 ns
+//! search                                   fastest       │ slowest       │ median        │ mean          │ samples │ iters        
+//! ├─ search_dir (1000 files, glob)         696.5 µs      │ 1.885 ms      │ 840.9 µs      │ 914 µs        │ 100     │ 100
+//! │                                        1.435 Mitem/s │ 530.3 Kitem/s │ 1.189 Mitem/s │ 1.094 Mitem/s │         │
+//! │                                        max alloc:    │               │               │               │         │
+//! │                                          4           │ 4             │ 4             │ 4             │         │
+//! │                                          289 B       │ 289 B         │ 289 B         │ 302.4 B       │         │
+//! │                                        alloc:        │               │               │               │         │
+//! │                                          5           │ 5             │ 5             │ 5.01          │         │
+//! │                                          258 B       │ 258 B         │ 258 B         │ 273.2 B       │         │
+//! │                                        dealloc:      │               │               │               │         │
+//! │                                          3           │ 3             │ 3             │ 3             │         │
+//! │                                          210 B       │ 210 B         │ 210 B         │ 210 B         │         │
+//! │                                        grow:         │               │               │               │         │
+//! │                                          1           │ 1             │ 1             │ 1             │         │
+//! │                                          47 B        │ 47 B          │ 47 B          │ 47 B          │         │
+//! ├─ search_dir (1000 files, insensitive)  666.6 µs      │ 2.764 ms      │ 831.9 µs      │ 957.7 µs      │ 100     │ 100
+//! │                                        1.499 Mitem/s │ 361.7 Kitem/s │ 1.201 Mitem/s │ 1.044 Mitem/s │         │
+//! │                                        max alloc:    │               │               │               │         │
+//! │                                          4           │ 4             │ 4             │ 4             │         │
+//! │                                          289 B       │ 289 B         │ 289 B         │ 315.8 B       │         │
+//! │                                        alloc:        │               │               │               │         │
+//! │                                          5           │ 5             │ 5             │ 5.02          │         │
+//! │                                          258 B       │ 258 B         │ 258 B         │ 288.4 B       │         │
+//! │                                        dealloc:      │               │               │               │         │
+//! │                                          3           │ 3             │ 3             │ 3             │         │
+//! │                                          210 B       │ 210 B         │ 210 B         │ 210 B         │         │
+//! │                                        grow:         │               │               │               │         │
+//! │                                          1           │ 1             │ 1             │ 1             │         │
+//! │                                          47 B        │ 47 B          │ 47 B          │ 47 B          │         │
+//! ╰─ search_dir (1000 files, sensitive)    671.3 µs      │ 2.557 ms      │ 828.6 µs      │ 926.7 µs      │ 100     │ 100
+//!                                          1.489 Mitem/s │ 390.9 Kitem/s │ 1.206 Mitem/s │ 1.079 Mitem/s │         │
+//!                                          max alloc:    │               │               │               │         │
+//!                                            4           │ 4             │ 4             │ 4             │         │
+//!                                            289 B       │ 289 B         │ 289 B         │ 302.4 B       │         │
+//!                                          alloc:        │               │               │               │         │
+//!                                            5           │ 5             │ 5             │ 5.01          │         │
+//!                                            258 B       │ 258 B         │ 258 B         │ 273.2 B       │         │
+//!                                          dealloc:      │               │               │               │         │
+//!                                            3           │ 3             │ 3             │ 3             │         │
+//!                                            210 B       │ 210 B         │ 210 B         │ 210 B         │         │
+//!                                          grow:         │               │               │               │         │
+//!                                            1           │ 1             │ 1             │ 1             │         │
+//!                                            47 B        │ 47 B          │ 47 B          │ 47 B          │         │
+//! ```
+//!
+//! ## License
+//!
+//! This project is licensed under the terms of the GNU General Public License version 3.
 
 /*
  * lookfor: find alternative
