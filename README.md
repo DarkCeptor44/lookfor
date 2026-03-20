@@ -125,19 +125,19 @@ The CLI benchmarks were performed using [Hyperfine](https://github.com/sharkdp/h
 - **Windows:** AMD64, 32GB RAM, Ryzen 7 3800X, Windows 11
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
-|:---|---:|---:|---:|---:|
-| `dir /s /b *clap*` | 56.9 ± 2.0 | 54.3 | 66.9 | 1.24 ± 0.18 |
-| `findstr /s /m /c:clap *` | 538.1 ± 18.3 | 525.7 | 577.7 | 11.76 ± 1.69 |
-| `target\release\lookfor.exe clap` | 45.8 ± 6.4 | 39.2 | 72.1 | 1.00 |
+| --- | --- | --- | --- | --- |
+| `lookfor look` (v3) | 25.5 ± 2.0 | 21.8 | 32.6 | 1.00 |
+| `lookfor clap` (v2) | 45.8 ± 6.4 | 39.2 | 72.1 | 1.80 ± 0.29 |
+| `dir /s /b *look*` | 95.2 ± 3.4 | 91.5 | 106.5 | 3.74 ± 0.33 |
+| `findstr /s /m /c:look *` | 358.5 ± 20.8 | 342.0 | 411.4 | 14.07 ± 1.39 |
 
-### Linux
-
-- ARM64, 1GB RAM, Orange Pi Zero2, Debian 12.
+- **Linux:** ARM64, 1GB RAM, Orange Pi Zero2, Debian 12
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
-|:---|---:|---:|---:|---:|
-| `find . -iname "*clap*"` | 20.5 ± 0.3 | 19.7 | 21.5 | 1.00 |
-| `target/release/lookfor clap` | 73.3 ± 1.3 | 70.6 | 76.5 | 3.57 ± 0.09 |
+| --- | --- | --- | --- | --- |
+| `lookfor look` (v3) | 12.2 ± 0.4 | 11.6 | 15.1 | 1.00 |
+| `find . -iname "*look*"` | 24.7 ± 0.4 | 24.0 | 27.1 | 2.02 ± 0.08 |
+| `lookfor look` (v2) | 87.1 ± 1.3 | 84.0 | 90.1 | 7.13 ± 0.28 |
 
 ## License
 
